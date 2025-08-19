@@ -100,7 +100,7 @@ kubectl delete pods --
 
 ## ⏭️ Next Up
 
-Continue to [Lab 6 – Helm](../lab-5-monitoring-observability to learn how to package and deploy Kubernetes applications more easily.
+Continue to [Lab 5 – Helm](../lab-5-monitoring-observability) Metrics, logging, and observability
 
 ## 📄 License
 MIT
