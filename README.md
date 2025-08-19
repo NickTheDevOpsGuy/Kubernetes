@@ -25,7 +25,7 @@ A structured set of hands-on labs designed to cover the Kubernetes fundamentals 
 2. **[Lab 2 – Deployments & Services](labs/lab-2-deployments-services)** → Scaling and exposing applications.  
 3. **[Lab 3 – Persistent Storage](labs/lab-3-persistent-storage)** → Using Persistent Volumes & Claims.  
 4. **[Lab 4 – Helm](labs/lab-4-helm)** → Packaging and deploying applications.  
-5. **[Lab 5 – Monitoring](labs/)** → Metrics, logging, and observability.  
+5. **[Lab 5 – Monitoring](labs/lab-5-monitoring-observabilit)** → Metrics, logging, and observability.  
 6. **[Lab 6 – GitOps](labs/)** → Automated deployments with ArgoCD/Flux.  
 
 ---
