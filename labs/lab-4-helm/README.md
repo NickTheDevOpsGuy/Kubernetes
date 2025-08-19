@@ -77,3 +77,7 @@ helm uninstall nginx-demo
 - values.yaml provides flexible configuration without editing raw YAML.
 - Helm makes upgrades and rollbacks easy.
 - Helm charts are widely used in production for apps, operators, and infra tools.
+
+## ⏭️ Next Up
+
+Continue to [Lab 5 – Helm](../lab-5-monitoring-observability) Helm with Metrics, logging, and observability
