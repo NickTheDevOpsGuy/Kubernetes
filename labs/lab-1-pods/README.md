@@ -72,4 +72,4 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 
 ## ⏭️ Next Up
 
-Head to [Lab 2 – Deployments & Services](..\lab-2-deployments-services) to learn how Kubernetes manages Pods at scale and exposes them to the outside world.
+Head to [Lab 2 – Deployments & Services](../lab-2-deployments-services) to learn how Kubernetes manages Pods at scale and exposes them to the outside world.
