@@ -21,7 +21,7 @@ kubernates/
 
 A structured set of hands-on labs designed to cover the Kubernetes fundamentals and beyond:
 
-1. **Lab 1 – Pods & Basics** → Running your first containers in Kubernetes.  
+1. **[Lab 1 – Pods & Basics](labs/lab-1-pods)** → Running your first containers in Kubernetes.  
 2. **Lab 2 – Deployments & Services** → Scaling and exposing applications.  
 3. **Lab 3 – Persistent Storage** → Using Persistent Volumes & Claims.  
 4. **Lab 4 – Helm** → Packaging and deploying applications.  
