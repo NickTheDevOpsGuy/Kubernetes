@@ -1,0 +1,47 @@
+grafana:
+  adminPassword: "admin"
+  service:
+    type: ClusterIP   # or LoadBalancer/NodePort if you prefer
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 250m, memory: 256Mi }
+  # Make sure filesystem perms are okay in emptyDir
+  podSecurityContext:
+    fsGroup: 472
+    runAsUser: 472
+    runAsGroup: 472
+  securityContext:
+    runAsUser: 472
+    runAsGroup: 472
+    runAsNonRoot: true
+  # Give the pod a bit more time before probes fire
+  readinessProbe:
+    httpGet: { path: /login, port: 3000 }
+    initialDelaySeconds: 20
+    periodSeconds: 10
+  livenessProbe:
+    httpGet: { path: /login, port: 3000 }
+    initialDelaySeconds: 30
+    periodSeconds: 10
+
+prometheus:
+  prometheusSpec:
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits:   { cpu: 500m, memory: 1Gi }
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 50m,  memory: 128Mi }
+      limits:   { cpu: 200m, memory: 256Mi }
+
+kubeStateMetrics:
+  resources:
+    requests: { cpu: 50m,  memory: 128Mi }
+    limits:   { cpu: 200m, memory: 256Mi }
+
+nodeExporter:
+  resources:
+    requests: { cpu: 25m,  memory: 64Mi }
+    limits:   { cpu: 100m, memory: 128Mi }

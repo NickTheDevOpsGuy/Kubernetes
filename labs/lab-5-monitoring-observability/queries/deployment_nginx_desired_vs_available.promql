@@ -1,0 +1,2 @@
+kube_deployment_status_replicas{deployment="nginx"}
+kube_deployment_status_replicas_available{deployment="nginx"}
