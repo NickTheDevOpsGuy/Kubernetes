@@ -16,7 +16,7 @@ Learn how Kubernetes manages Pods at scale using **Deployments** and how to expo
 
 ```plaintext
 .
-├── mainfests
+├── manifests
 │   ├── deployment.yaml
 │   ├── service-clusterip.yaml
 │   ├── service-loadbalancer.yaml
