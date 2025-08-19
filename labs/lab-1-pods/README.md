@@ -47,13 +47,13 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 
 4. Test locally
 
-```bash
-kubectl port-forward pod/nginx-pod 8080:80
-```
+   ```bash
+   kubectl port-forward pod/nginx-pod 8080:80
+   ```
+   
+   👉 Then open http://localhost:8080 to see the Nginx welcome page.
 
-👉 Then open http://localhost:8080 to see the Nginx welcome page.
-
-5.  Cleanup:
+5.  Cleanup
 
     ```bash
     kubectl delete -f manifests/pod.yaml 
