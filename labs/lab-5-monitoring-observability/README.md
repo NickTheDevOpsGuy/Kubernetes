@@ -98,9 +98,5 @@ kubectl delete pods --
 
 - GitHub: [NickTheDevOpsGuy](https://github.com/NickTheDevOpsGuy)
 
-## ⏭️ Next Up
-
-Continue to [Lab 5 – Helm](../lab-5-monitoring-observability) Metrics, logging, and observability
-
 ## 📄 License
 MIT
