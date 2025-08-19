@@ -26,4 +26,24 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
     kubectl get pods
     ```
 
-3. Inspect details:  
+3. Inspect details:
+
+    ```bash
+    kubectl describe pod nginx-pod
+    kubectl logs nginx-pod
+    ```
+
+4.  Cleanup:
+
+    ```bash
+    kubectl delete -f manifests/pod.yaml 
+    ```
+
+---
+
+## 📝 Key Takeaways
+
+- Pods are the smallest deployable unit in Kubernetes.
+- A pod can contain one or more containers.
+- Pods are ephemeral → if one dies, a Deployment/ReplicaSet is usually needed to respawn it.
+- Use kubectl logs and kubectl describe to debug.
