@@ -6,9 +6,13 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 ---
 
 ## 📂 Files
-- `manifests/pod.yaml` – Basic Nginx pod
-- `manifests/multi-container-pod.yaml` – Example pod with multiple containers
-- `manifests/pod-with-config.yaml` – Pod using environment variables
+.
+├── mainfests
+│   ├── multi-container-pod.yaml
+│   ├── pod-with-config.yaml
+│   └── pod.yaml
+├── notes.md
+└── README.md
 
 ---
 
