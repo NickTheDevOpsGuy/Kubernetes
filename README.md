@@ -71,4 +71,11 @@ This is mostly for my own growth, but if you stumble across something cool here 
 
 Stay tuned. The domination continues. 💀
 
+---
+
+## 👑 Part of the NickDoesDevOps Portfolio  
+Follow more projects like this at [github.com/NickTheDevOpsGuy](https://github.com/NickTheDevOpsGuy)
+
+> _World Domination, One Pipeline at a Time™_
+
 
