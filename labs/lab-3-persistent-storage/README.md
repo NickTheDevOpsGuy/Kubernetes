@@ -79,5 +79,5 @@ kubectl delete -f manifests/pv.yaml
 
 ## ⏭️ Next Up
 
-Continue to (Lab 4 – Helm)[../lab-4-helm] to learn how to package and deploy Kubernetes applications more easily.
+Continue to [Lab 4 – Helm](../lab-4-helm) to learn how to package and deploy Kubernetes applications more easily.
 
