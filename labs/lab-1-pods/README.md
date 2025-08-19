@@ -6,6 +6,7 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 ---
 
 ## 📂 Files
+```plaintest
 .
 ├── mainfests
 │   ├── multi-container-pod.yaml
@@ -13,6 +14,7 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 │   └── pod.yaml
 ├── notes.md
 └── README.md
+```
 
 ---
 
