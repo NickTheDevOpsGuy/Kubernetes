@@ -17,4 +17,9 @@ A structured set of hands-on labs designed to cover the Kubernetes fundamentals 
 
 *(More coming soon…)*
 
+---
 
+## 👑 Part of the NickDoesDevOps Portfolio  
+Follow more projects like this at [github.com/NickTheDevOpsGuy](https://github.com/NickTheDevOpsGuy)
+
+> _World Domination, One Pipeline at a Time™_
