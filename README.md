@@ -28,8 +28,6 @@ A structured set of hands-on labs designed to cover the Kubernetes fundamentals 
 5. **[Lab 5 – Monitoring](labs/)** → Metrics, logging, and observability.  
 6. **[Lab 6 – GitOps](labs/)** → Automated deployments with ArgoCD/Flux.  
 
-*(More coming soon…)*
-
 ---
 
 ## 🚀 Projects
