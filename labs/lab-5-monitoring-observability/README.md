@@ -98,5 +98,9 @@ kubectl delete pods --
 
 - GitHub: [NickTheDevOpsGuy](https://github.com/NickTheDevOpsGuy)
 
+## ⏭️ Next Up
+
+Continue to [Lab 6 – Helm](../lab-5-monitoring-observability to learn how to package and deploy Kubernetes applications more easily.
+
 ## 📄 License
 MIT
