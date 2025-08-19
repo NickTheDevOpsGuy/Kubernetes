@@ -25,6 +25,7 @@ kubectl logs <pod>                # Show logs from a pod
 kubectl exec -it <pod> -- bash    # Exec into a pod
 kubectl delete pod <pod>          # Delete a pod
 ```
+
 ---
 
 ## 🛠️ Deployments
