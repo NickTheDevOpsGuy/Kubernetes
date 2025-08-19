@@ -1,0 +1,104 @@
+{
+  "annotations": {
+    "list": [
+      { "builtIn": 1, "datasource": "-- Grafana --", "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard" }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Pod CPU (cores) by Pod",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{container!=\"\",pod!=\"\"}[5m]))",
+          "legendFormat": "{{pod}}",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Pod Memory Working Set (MiB) by Pod",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (pod) (container_memory_working_set_bytes{container!=\"\",pod!=\"\"}) / 1024^2",
+          "legendFormat": "{{pod}}",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Pod Restarts (1h increase) by Pod",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "increase(kube_pod_container_status_restarts_total[1h])",
+          "legendFormat": "{{pod}}/{{container}}",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Deployment nginx: Desired vs Available",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "kube_deployment_status_replicas{deployment=\"nginx\"}",
+          "legendFormat": "desired",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "kube_deployment_status_replicas_available{deployment=\"nginx\"}",
+          "legendFormat": "available",
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node CPU Utilization (%)",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 15 },
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node Memory Available (%)",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 15 },
+      "targets": [
+        {
+          "expr": "100 * (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["kubernetes", "nginx", "lab"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "",
+  "title": "NGINX Lab Overview",
+  "version": 1
+}

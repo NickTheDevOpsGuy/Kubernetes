@@ -1,0 +1,1 @@
+sum by (pod) (container_memory_working_set_bytes{container!="",pod!=""}) / 1024^2
