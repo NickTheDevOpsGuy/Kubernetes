@@ -1,4 +1,4 @@
-# 🌀 Kubernates – World Domination Training Grounds
+# 🌀 Kubernates Labs – World Domination Training Grounds
 
 Welcome to my **Kubernates** repo – my personal playground for learning, experimenting, and mastering Kubernetes.  
 This is where I break clusters (on purpose), fix them, and document the journey on my path to **DevOps world domination**. 🌍⚔️
@@ -16,4 +16,5 @@ A structured set of hands-on labs designed to cover the Kubernetes fundamentals 
 6. **[Lab 6 – GitOps](labs/)** → Automated deployments with ArgoCD/Flux.  
 
 *(More coming soon…)*
+
 
