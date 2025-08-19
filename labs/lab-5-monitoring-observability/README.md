@@ -6,11 +6,21 @@ Install a cluster monitoring stack with **Prometheus** (metrics), **Alertmanager
 ## 📁 Project Structure
 ```plaintext
 .
-├── infra/
-│   ├── main.bicep
-│   └── modules/
-├── app/
-├── queries/
+├── dashboards
+│   └── nginx-lab-overview.json
+├── helm
+│   └── values-prom-stack.yaml
+├── mainfests
+│   ├── nginx-deployment.yaml
+│   └── nginx-service.yaml
+├── notes.md
+├── queries
+│   ├── deployment_nginx_desired_vs_available.promql
+│   ├── node_cpu_utilization_percent.promql
+│   ├── node_memory_available_percent.promql
+│   ├── pod_cpu_rate.promql
+│   ├── pod_memory_workingset_mib.promql
+│   └── pod_restarts_1h.promql
 └── README.md
 ```
 
