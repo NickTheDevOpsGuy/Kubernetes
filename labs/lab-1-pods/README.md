@@ -13,6 +13,7 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 ---
 
 ## 📂 Files
+```plaintext
 .
 ├── mainfests
 │   ├── multi-container-pod.yaml
@@ -20,19 +21,19 @@ Understand the basics of Kubernetes Pods by creating and running simple workload
 │   └── pod.yaml
 ├── notes.md
 └── README.md
-
+```
 ---
 
 
 ## 🚀 Steps
 
-1. Apply the pod
+### 1. Apply the pod
    
    ```bash
    kubectl apply -f manifests/pod.yaml
    ```
 
-2. Verify it’s running
+### 2. Verify it’s running
 
     ```bash
     kubectl get pods
