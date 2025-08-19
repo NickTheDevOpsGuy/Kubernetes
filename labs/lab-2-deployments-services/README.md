@@ -97,4 +97,4 @@ http://<external-ip>:80
 
 ## ⏭️ Next Up
 
-Continue to [Lab 3 – Persistent Storage](./lab-3-persistent-storage) to learn how Kubernetes manages stateful applications with PersistentVolumes and PersistentVolumeClaims.
+Continue to [Lab 3 – Persistent Storage](../lab-3-persistent-storage) to learn how Kubernetes manages stateful applications with PersistentVolumes and PersistentVolumeClaims.
