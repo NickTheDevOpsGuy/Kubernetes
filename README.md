@@ -40,7 +40,7 @@ These are larger, real-world examples I’ve deployed on Kubernetes:
 
 ## 📒 Notes
 
-1. **[Lab 1 – Canary](projects/k8s-canary)** → This lab shows how to implement a Kubernetes canary deployment with NGINX Ingress, gradually shifting traffic from a stable app version to a canary release.  
+1. **[Lab 1 – K8s Canary Traffic Split](projects/k8s-canary)** → This lab shows how to implement a Kubernetes canary deployment with NGINX Ingress.  
 
 ---
 
