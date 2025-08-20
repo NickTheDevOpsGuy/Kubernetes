@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-v1
+  namespace: canary-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: demo
+        version: v1
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/knative/helloworld-go:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "Hello from version: v1"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
