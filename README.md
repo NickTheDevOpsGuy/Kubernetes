@@ -40,8 +40,7 @@ These are larger, real-world examples I’ve deployed on Kubernetes:
 
 ## 📒 Notes
 
-- [Kubectl Cheatsheet](notes/kubectl-cheatsheet.md) – Quick commands for daily use.  
-- [AZ-400 Prep Notes](notes/az400-prep.md) – Exam-focused Kubernetes insights.  
+1. **[Lab 1 – Canary](projects/k8s-canary)** → This lab shows how to implement a Kubernetes canary deployment with NGINX Ingress, gradually shifting traffic from a stable app version to a canary release.  
 
 ---
 
