@@ -72,5 +72,3 @@ Stay tuned. The domination continues. 💀
 Follow more projects like this at [github.com/NickTheDevOpsGuy](https://github.com/NickTheDevOpsGuy)
 
 > _World Domination, One Pipeline at a Time™_
-
-
