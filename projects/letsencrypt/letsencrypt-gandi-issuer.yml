@@ -6,8 +6,10 @@ spec:
   acme:
     email: limeman@gmail.com
     server: https://acme-v02.api.letsencrypt.org/directory
+
     privateKeySecretRef:
       name: letsencrypt-gandi-account-key
+
     solvers:
       - dns01:
           webhook:

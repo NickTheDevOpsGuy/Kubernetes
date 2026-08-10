@@ -147,7 +147,7 @@ spec:
   tls:
     - hosts:
         - ownfoil.home.nickhelps.tech
-      secretName: ownfoil-tls
+      secretName: wildcard-home-nickhelps-tech-tls
   rules:
     - host: ownfoil.home.nickhelps.tech
       http:
