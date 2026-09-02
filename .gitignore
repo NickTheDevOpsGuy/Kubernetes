@@ -73,4 +73,5 @@ charts/*/tmpcharts/
 # ---- Secrets / Credentials ----
 *.env
 .env.*
-secrets*.yaml
+secrets*.yaml.secerts
+.secerts
