@@ -1,0 +1,225 @@
+# =============================================================================
+# Heating Oil Price Exporter
+# =============================================================================
+#
+# External metrics URL:
+#
+#   https://oil.home.nickhelps.tech/metrics
+#
+# Request flow:
+#
+#   Internet
+#      |
+#   HTTPS :443
+#      |
+#   Traefik Ingress
+#      |
+#   Service :8000
+#      |
+#   oilPrice.py
+#
+# Namespace:
+#   monitoring
+#
+# Existing resources required:
+#
+#   Secret:
+#     name: eia-api
+#     key: EIA_API_KEY
+#
+#   ConfigMap:
+#     name: oil-price-exporter-scripts
+#     expected files:
+#       - oilPrice.py
+#       - requirements.txt
+#
+# TLS:
+#   cert-manager
+#   ClusterIssuer: letsencrypt-cloudflare
+#
+# Prometheus Helm release:
+#   monitoring
+#
+# =============================================================================
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oil-price-exporter
+  namespace: monitoring
+  labels:
+    app: oil-price-exporter
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: oil-price-exporter
+
+  template:
+    metadata:
+      labels:
+        app: oil-price-exporter
+    spec:
+      containers:
+        - name: oil-price-exporter
+          image: python:3.13-slim
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - /bin/sh
+            - -c
+
+          args:
+            - |
+              set -e
+              pip install --no-cache-dir -r /scripts/requirements.txt
+              exec python3 /scripts/oilPrice.py
+
+          ports:
+            - name: metrics
+              containerPort: 8000
+              protocol: TCP
+
+          env:
+            - name: EIA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: eia-api
+                  key: EIA_API_KEY
+
+            - name: REFRESH_SECONDS
+              value: "86400"
+
+            - name: LISTEN_PORT
+              value: "8000"
+
+            - name: LOG_LEVEL
+              value: INFO
+
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+
+      volumes:
+        - name: scripts
+          configMap:
+            name: oil-price-exporter-scripts
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oil-price-exporter
+  namespace: monitoring
+  labels:
+    app: oil-price-exporter
+spec:
+  type: ClusterIP
+
+  selector:
+    app: oil-price-exporter
+
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: metrics
+      protocol: TCP
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: oil-price-exporter
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: oil-price-exporter
+
+  namespaceSelector:
+    matchNames:
+      - monitoring
+
+  endpoints:
+    - port: metrics
+      path: /metrics
+      scheme: http
+      interval: 60s
+      scrapeTimeout: 15s
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: oil-home-nickhelps-tech-tls
+  namespace: monitoring
+spec:
+  secretName: oil-home-nickhelps-tech-tls
+
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+  dnsNames:
+    - oil.home.nickhelps.tech
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oil-price-exporter
+  namespace: monitoring
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+
+  tls:
+    - hosts:
+        - oil.home.nickhelps.tech
+      secretName: oil-home-nickhelps-tech-tls
+
+  rules:
+    - host: oil.home.nickhelps.tech
+      http:
+        paths:
+          - path: /metrics
+            pathType: Prefix
+            backend:
+              service:
+                name: oil-price-exporter
+                port:
+                  number: 8000

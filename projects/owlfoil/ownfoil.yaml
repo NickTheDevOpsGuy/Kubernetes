@@ -11,18 +11,22 @@ metadata:
 spec:
   capacity:
     storage: 1Ti
+
   accessModes:
-    - ReadOnlyMany
+    - ReadWriteMany
+
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ownfoil-games-nfs
+
   mountOptions:
     - nfsvers=4.1
     - hard
     - noatime
+
   nfs:
     server: 192.168.1.252
     path: /mnt/S/Games/SwitchGames
-    readOnly: true
+    readOnly: false
 
 ---
 apiVersion: v1
@@ -32,9 +36,11 @@ metadata:
   namespace: ownfoil
 spec:
   accessModes:
-    - ReadOnlyMany
+    - ReadWriteMany
+
   storageClassName: ownfoil-games-nfs
   volumeName: ownfoil-games-pv
+
   resources:
     requests:
       storage: 1Ti
@@ -48,7 +54,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
+
   storageClassName: nfs-client
+
   resources:
     requests:
       storage: 2Gi
@@ -62,7 +70,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
+
   storageClassName: nfs-client
+
   resources:
     requests:
       storage: 10Gi
@@ -75,44 +85,56 @@ metadata:
   namespace: ownfoil
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: ownfoil
+
   template:
     metadata:
       labels:
         app: ownfoil
+
     spec:
       containers:
         - name: ownfoil
           image: a1ex4/ownfoil:latest
           imagePullPolicy: IfNotPresent
+
           ports:
             - name: http
               containerPort: 8465
               protocol: TCP
+
           volumeMounts:
             - name: games
               mountPath: /games
-              readOnly: true
+              readOnly: false
+
             - name: config
               mountPath: /app/config
+
             - name: data
               mountPath: /app/data
+
           resources:
             requests:
               cpu: 100m
               memory: 256Mi
+
             limits:
               cpu: "1"
               memory: 1Gi
+
       volumes:
         - name: games
           persistentVolumeClaim:
             claimName: ownfoil-games-pvc
+
         - name: config
           persistentVolumeClaim:
             claimName: ownfoil-config
+
         - name: data
           persistentVolumeClaim:
             claimName: ownfoil-data
@@ -125,8 +147,10 @@ metadata:
   namespace: ownfoil
 spec:
   type: ClusterIP
+
   selector:
     app: ownfoil
+
   ports:
     - name: http
       port: 8465
@@ -139,22 +163,28 @@ kind: Ingress
 metadata:
   name: ownfoil
   namespace: ownfoil
+
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+
 spec:
   ingressClassName: traefik
+
   tls:
     - hosts:
         - ownfoil.home.nickhelps.tech
       secretName: wildcard-home-nickhelps-tech-tls
+
   rules:
     - host: ownfoil.home.nickhelps.tech
       http:
         paths:
           - path: /
             pathType: Prefix
+
             backend:
               service:
                 name: ownfoil
+
                 port:
                   number: 8465
