@@ -1,9 +1,53 @@
+# =============================================================================
+# Ownfoil on k3s/Traefik
+#
+# Key fixes vs. previous version:
+#   1. config/data moved OFF NFS onto local-path block storage. Both hold
+#      SQLite DBs (library, users, and the TitleDB DB in 2.4.x), and SQLite
+#      file locking over NFS causes "database is locked" errors and corruption.
+#      /games stays on NFS, which is fine.
+#   2. strategy: Recreate. RollingUpdate briefly runs two pods against the same
+#      DBs during every rollout.
+#   3. Image pinned (no :latest drift across 2.x breaking changes).
+#   4. PUID/PGID set explicitly so the container can write config/data.
+#   5. startupProbe added so the slow first boot (TitleDB build + initial scan)
+#      isn't killed. liveness/readiness probes added.
+#   6. /games NFS share (served from ndesktop, which is powered off regularly)
+#      is now mounted READ-ONLY with `soft`. When the desktop is off, file
+#      access fails after ~15s with an I/O error instead of hanging Ownfoil
+#      until the desktop comes back. Ownfoil keeps running and recovers by
+#      itself once the share is back.
+#      -> Disable compression / organise / delete features in Ownfoil
+#         settings; they write to /games and will fail on a read-only mount.
+#
+# The old NFS-backed PVCs (ownfoil-config / ownfoil-data) are KEPT below so the
+# existing data can be migrated. See the migration Job at the bottom.
+# =============================================================================
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: ownfoil
 
 ---
+# -----------------------------------------------------------------------------
+# Games library - NFS from ndesktop (192.168.1.252), READ-ONLY, soft mount.
+#
+# The desktop is a workstation that gets powered off. With the old `hard`
+# mount every file access blocked until it came back (hours), freezing
+# Ownfoil. `soft` returns EIO after timeo x retrans instead:
+#   timeo=50   -> 5s per RPC attempt (units of 0.1s)
+#   retrans=2  -> 2 retries => ~15s until an error is returned
+# `soft` is only safe because the mount is read-only: soft + writes can
+# silently lose data on a timeout.
+#
+# The NFS source and accessModes of a PV are immutable, so the old PV/PVC
+# must be deleted and recreated (see the apply steps in the chat / below).
+# Reclaim policy is Retain: deleting the PV object never touches the files.
+#
+# Note: inotify file-watching does not fire on NFS, so new files won't be
+# picked up automatically - trigger a scan in the UI (or schedule one).
+# -----------------------------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -13,20 +57,23 @@ spec:
     storage: 1Ti
 
   accessModes:
-    - ReadWriteMany
+    - ReadOnlyMany
 
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ownfoil-games-nfs
 
   mountOptions:
     - nfsvers=4.1
-    - hard
+    - soft          # fail with EIO instead of hanging when the desktop is off
+    - timeo=50      # 5s per attempt
+    - retrans=2     # ~15s total before the error
+    - ro            # read-only at the NFS client
     - noatime
 
   nfs:
     server: 192.168.1.252
     path: /mnt/S/Games/SwitchGames
-    readOnly: false
+    readOnly: true
 
 ---
 apiVersion: v1
@@ -36,7 +83,7 @@ metadata:
   namespace: ownfoil
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadOnlyMany
 
   storageClassName: ownfoil-games-nfs
   volumeName: ownfoil-games-pv
@@ -46,6 +93,11 @@ spec:
       storage: 1Ti
 
 ---
+# -----------------------------------------------------------------------------
+# LEGACY NFS-backed config/data PVCs - kept only as the migration source.
+# A PVC's storageClassName is immutable, so the new local-path PVCs need new
+# names. Once the migration has been verified, these can be deleted.
+# -----------------------------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -78,13 +130,63 @@ spec:
       storage: 10Gi
 
 ---
+# -----------------------------------------------------------------------------
+# NEW config/data PVCs - local-path (k3s default), RWO.
+# local-path pins the pod to the node the volume was created on. If you run
+# Longhorn or another replicated block storage class, use that instead to keep
+# the pod schedulable on any node.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ownfoil-config-local
+  namespace: ownfoil
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  storageClassName: local-path
+
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ownfoil-data-local
+  namespace: ownfoil
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  storageClassName: local-path
+
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ownfoil
   namespace: ownfoil
+  # Label used to exclude the Deployment from the first apply
+  # (`kubectl apply -l 'app!=ownfoil'`) so it can't start before the migration
+  labels:
+    app: ownfoil
 spec:
+  # SQLite: never more than one replica
   replicas: 1
+
+  # Stop the old pod fully before starting the new one (no shared-DB overlap).
+  # rollingUpdate: null clears the server-defaulted RollingUpdate params left
+  # on the existing Deployment; without it the switch to Recreate is rejected.
+  strategy:
+    type: Recreate
+    rollingUpdate: null
 
   selector:
     matchLabels:
@@ -96,10 +198,24 @@ spec:
         app: ownfoil
 
     spec:
+      securityContext:
+        # Makes the local-path volumes group-writable for PGID.
+        # (Not applied to NFS volumes - /games is read-only anyway, it just
+        # needs to be readable by PUID/PGID on the desktop export.)
+        fsGroup: 1000
+
       containers:
         - name: ownfoil
-          image: a1ex4/ownfoil:latest
+          # Pinned. Bump deliberately after reading release notes.
+          image: a1ex4/ownfoil:2.4.1
           imagePullPolicy: IfNotPresent
+
+          env:
+            # UID/GID the app drops to - match the owner of the NFS games share
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
 
           ports:
             - name: http
@@ -107,9 +223,10 @@ spec:
               protocol: TCP
 
           volumeMounts:
+            # Read-only: see the PV comment (soft mount is only safe for reads)
             - name: games
               mountPath: /games
-              readOnly: false
+              readOnly: true
 
             - name: config
               mountPath: /app/config
@@ -117,11 +234,34 @@ spec:
             - name: data
               mountPath: /app/data
 
+          # First boot builds the TitleDB and scans the library - allow up to
+          # 10 minutes before liveness checks begin.
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 60
+
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+
           resources:
             requests:
               cpu: 100m
               memory: 512Mi
 
+            # Background verify/compress workers are memory-heavy. Raise this
+            # (or lower the worker count in settings) if you see OOMKilled.
             limits:
               cpu: "1"
               memory: 2Gi
@@ -130,14 +270,15 @@ spec:
         - name: games
           persistentVolumeClaim:
             claimName: ownfoil-games-pvc
+            readOnly: true
 
         - name: config
           persistentVolumeClaim:
-            claimName: ownfoil-config
+            claimName: ownfoil-config-local
 
         - name: data
           persistentVolumeClaim:
-            claimName: ownfoil-data
+            claimName: ownfoil-data-local
 
 ---
 apiVersion: v1
@@ -165,6 +306,12 @@ metadata:
   namespace: ownfoil
 
   annotations:
+    # NOTE: with this annotation, cert-manager's ingress-shim will create a
+    # Certificate for ownfoil.home.nickhelps.tech ONLY and write it into
+    # secretName below. If wildcard-home-nickhelps-tech-tls is a wildcard cert
+    # replicated into this namespace (reflector/replicator), the two will fight
+    # over the secret. In that case, drop this annotation; otherwise, use a
+    # dedicated secretName (e.g. ownfoil-tls).
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 
 spec:
@@ -188,3 +335,77 @@ spec:
 
                 port:
                   number: 8465
+
+---
+# -----------------------------------------------------------------------------
+# ONE-TIME MIGRATION: copy NFS config/data -> local-path PVCs.
+#
+#   kubectl -n ownfoil scale deploy/ownfoil --replicas=0
+#   kubectl -n ownfoil delete pvc ownfoil-games-pvc     # PV/PVC are immutable
+#   kubectl delete pv ownfoil-games-pv                  # Retain: files untouched
+#   kubectl apply -f ownfoil.yaml -l 'app!=ownfoil'     # everything EXCEPT the Deployment
+#   kubectl -n ownfoil wait --for=condition=complete job/ownfoil-migrate --timeout=10m
+#   kubectl -n ownfoil logs job/ownfoil-migrate
+#   kubectl apply -f ownfoil.yaml                       # now the Deployment
+#
+# Ownfoil must be stopped while this runs so the SQLite files are consistent,
+# and the desktop must be ON (the old nfs-client PVCs may live on it).
+# The Job cleans itself up after an hour (ttlSecondsAfterFinished). Remove this
+# Job block afterwards: if the file is re-applied after the Job is gone, it
+# would re-run and overwrite live data. Remove the legacy PVCs too once you're
+# happy with the result.
+#
+# If ndesktop is also a k3s node, cordon it BEFORE the first apply: the first
+# pod to use a local-path PVC decides which node the volume lives on, and you
+# don't want Ownfoil's DBs pinned to a machine that gets powered off.
+# -----------------------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ownfoil-migrate
+  namespace: ownfoil
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: migrate
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              set -x
+              cp -a /old-config/. /new-config/
+              cp -a /old-data/.   /new-data/
+              ls -la /new-config /new-data
+
+          volumeMounts:
+            - name: old-config
+              mountPath: /old-config
+              readOnly: true
+            - name: old-data
+              mountPath: /old-data
+              readOnly: true
+            - name: new-config
+              mountPath: /new-config
+            - name: new-data
+              mountPath: /new-data
+
+      volumes:
+        - name: old-config
+          persistentVolumeClaim:
+            claimName: ownfoil-config
+        - name: old-data
+          persistentVolumeClaim:
+            claimName: ownfoil-data
+        - name: new-config
+          persistentVolumeClaim:
+            claimName: ownfoil-config-local
+        - name: new-data
+          persistentVolumeClaim:
+            claimName: ownfoil-data-local
