@@ -305,14 +305,10 @@ metadata:
   name: ownfoil
   namespace: ownfoil
 
-  annotations:
-    # NOTE: with this annotation, cert-manager's ingress-shim will create a
-    # Certificate for ownfoil.home.nickhelps.tech ONLY and write it into
-    # secretName below. If wildcard-home-nickhelps-tech-tls is a wildcard cert
-    # replicated into this namespace (reflector/replicator), the two will fight
-    # over the secret. In that case, drop this annotation; otherwise, use a
-    # dedicated secretName (e.g. ownfoil-tls).
-    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+  # TLS comes from the explicit Certificate in
+  # projects/letsencrypt/letsencrypt-cloudflare.yaml, so no cert-manager
+  # annotation here: with it, ingress-shim would issue a second, competing
+  # certificate for the same host into whatever secretName is listed below.
 
 spec:
   ingressClassName: traefik
@@ -320,7 +316,7 @@ spec:
   tls:
     - hosts:
         - ownfoil.home.nickhelps.tech
-      secretName: wildcard-home-nickhelps-tech-tls
+      secretName: ownfoil-home-nickhelps-tech-tls
 
   rules:
     - host: ownfoil.home.nickhelps.tech
